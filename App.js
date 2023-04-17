@@ -19,7 +19,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const { confirmPayment } = useStripe();
   const [publishableKey, setPublishableKey] = useState(
-    "pk_test_51MxlJlDU0aTyl47mM2L2Upi7bKiFdgtkIXw91dVjONB2fSjle9h7ItIdhl5lZFbtFlkeorSDmNWEXiuNUHr705o400ztCW8j54"
+    "pk_test_51MxkRtSDgjJe71rZGVNEizRqyiZ82mtauu2bsRWYnN7SuYe9LiJrQLV0WOtodF6HNh8sE6JT2W9h2J037zZzb5s100B4qTKkTQ"
   );
 
   useEffect(() => {
@@ -31,110 +31,107 @@ export default function App() {
     initialize().catch(console.error);
   }, []);
 
-  useEffect(() => {
+  //   useEffect(() => {
+  const handlePayment = async () => {
     let data = {
       test: 123,
     };
-    key = axios
-      .post("https://payment-apitest.onrender.com/create_payment", {
-        data,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then(async (res) => {
-        if (res?.data?.status === 200) {
-          console.log("create_payment res", res?.data?.data);
-
-          // console.log("setupIntent ===>>", res?.data?.data?.setupIntent);
-          // console.log("ephemeralKey ===>>", res?.data?.data?.ephemeralKey);
-          // console.log("customer ===>>", res?.data?.data?.customer);
-
-          //
-          //
-          //
-          //
-          //
-          // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
-          //methods that complete payment after a delay, like SEPA Debit and Sofort.
-          // allowsDelayedPaymentMethods: true,
-          // defaultBillingDetails: {
-          //   name: "Jane Doe",
-          // },
-
-          const { paymentIntent, error } = await initPaymentSheet({
-            merchantDisplayName: "Example, Inc.",
-            customerId: res?.data?.data?.customer,
-            customerEphemeralKeySecret: res?.data?.data?.ephemeralKey,
-            paymentIntentClientSecret: res?.data?.data?.setupIntent,
-            customFlow: true,
-            allowsDelayedPaymentMethods: true,
-            defaultBillingDetails: {
-              name: "Jane Doe",
-            },
-          })
-            .then(async (res) => {
-              console.log("initPaymentSheet res", res);
-              const { error } = await presentPaymentSheet();
-              // .then((res) => {
-              //   console.log("res", res);
-              // })
-              // .catch((err) => {
-              //   console.log("err", err);
-              // });
-              console.log("errrr", error);
-            })
-            .catch((err) => {
-              console.log("initPaymentSheet error", err);
-            });
-
-          // if (error) {
-          //   console.log(
-          //     "confirm Payment failed:",
-          //     error.message,
-          //     "==>Full Err",
-          //     error
-          //   );
-          // } else if (paymentIntent) {
-          //   console.log("confirm Payment succeeded:", paymentIntent);
-          // }
-        } else {
-          console.log("response err", err);
+    axios
+      .post(
+        // "https://payment-apitest.onrender.com/create_payment",
+        "http:localhost:3000/create_payment",
+        {
+          data,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
+      )
+      .then(async (res) => {
+        console.log("res from api", res?.data?.data);
+        // if (res?.data?.status === 200) {
+        // console.log("create_payment res", res?.data?.data);
+
+        const { error } = await initPaymentSheet({
+          paymentIntentClientSecret: res?.data?.data,
+          merchantDisplayName: "Merchant Name",
+        });
+        if (error) {
+          console.log("payment failyre", error);
+          return;
+        }
+        const secret = res?.data?.data;
+        const presemtSheet = await presentPaymentSheet({ secret });
+        if (presemtSheet?.error) {
+          console.log("payment sheet failyre");
+          return;
+        }
+        // 4000000000009995
+        // 4000002500003155
+        //   .then(async (res) => {
+        //     console.log("initPaymentSheet res", res);
+        //     const { error } = await presentPaymentSheet();
+        //     // .then((res) => {
+        //     //   console.log("res", res);
+        //     // })
+        //     // .catch((err) => {
+        //     //   console.log("err", err);
+        //     // });
+        //     console.log("errrr", error);
+        //   })
+        //   .catch((err) => {
+        //     console.log("initPaymentSheet error", err);
+        //   });
+
+        // if (error) {
+        //   console.log(
+        //     "confirm Payment failed:",
+        //     error.message,
+        //     "==>Full Err",
+        //     error
+        //   );
+        // } else if (paymentIntent) {
+        //   console.log("confirm Payment succeeded:", paymentIntent);
+        // }
+        // } else {
+        //   console.log("response err", err);
+        // }
       })
       .catch((err) => {
         console.log("create_payment err", err);
       });
-  }, []);
-
-  const handlePayment = async () => {
-    setLoading(true);
-    const { paymentIntent, error } = await createPaymentMethod({
-      amount: 1, // amount in cents
-      currency: "usd",
-      // type: "Card",
-      confirm: true,
-      paymentMethodType: "Card",
-      billingDetails: {
-        name: "John Doe",
-        email: "john.doe@example.com",
-      },
-      paymentMethod: {
-        card: {
-          number: "4242424242424242",
-          expMonth: 12,
-          expYear: 2025,
-          cvc: "123",
-        },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      console.log("Payment failed:", error.message, "==>", error);
-    } else if (paymentIntent) {
-      console.log("Payment succeeded:", paymentIntent);
-    }
   };
+  //   }, []);
+
+  //   const handlePayment = async () => {
+  //     setLoading(true);
+  //     const { paymentIntent, error } = await createPaymentMethod({
+  //       amount: 1, // amount in cents
+  //       currency: "usd",
+  //       // type: "Card",
+  //       confirm: true,
+  //       paymentMethodType: "Card",
+  //       billingDetails: {
+  //         name: "John Doe",
+  //         email: "john.doe@example.com",
+  //       },
+
+  //       paymentMethod: {
+  //         card: {
+  //           number: "4242424242424242",
+  //           expMonth: 12,
+  //           expYear: 2025,
+  //           cvc: "123",
+  //         },
+  //       },
+  //     });
+  //     setLoading(false);
+  //     if (error) {
+  //       console.log("Payment failed:", error.message, "==>", error);
+  //     } else if (paymentIntent) {
+  //       console.log("Payment succeeded:", paymentIntent);
+  //     }
+  //   };
 
   return (
     // <StripeProvider publishableKey={publishableKey}>
